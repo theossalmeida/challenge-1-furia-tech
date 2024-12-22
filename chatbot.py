@@ -2,6 +2,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 import json
 from backend_chatbot.get_lol_info import get_lol_schedule, get_lol_roster
+from backend_chatbot.get_cs2_info import get_cs2_roster
 
 
 BOT_USERNAME = "challenge_01_bot" # Replace with your bot's username
@@ -84,6 +85,18 @@ async def show_roster(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if game == "league":
 
         roster = get_lol_roster()
+
+        # Condition for cases where there are no next games on the function response
+        if not roster["status"]:
+            await update.message.reply_text("Ocorreu um erro ao tentar nossa seleçao, tente novamente mais tarde.\n\n/menu")
+
+        else:
+            team = roster["roster"]
+            await update.message.reply_text("Esses sao nossos jogadores: \n" + team + "\n\n/menu")
+    
+    if game == "cs2":
+
+        roster = get_cs2_roster()
 
         # Condition for cases where there are no next games on the function response
         if not roster["status"]:
