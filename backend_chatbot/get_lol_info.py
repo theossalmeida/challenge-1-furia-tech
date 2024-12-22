@@ -2,12 +2,15 @@ import requests
 import pandas as pd
 from datetime import datetime, date
 import json
+from bs4 import BeautifulSoup
+import os
 
 
 # Parameters and variables for the API requisition https://esports-api.lolesports.com/
-with open("keys_api.json", "r") as k: # More security for the API KEY not becoming public !! 
+keys_path = os.path.join("../..", "keys_api.json")
+keys_path = "/Users/theo/chall-01-furia/challenge-1-furia-tech/keys_api.json"
+with open(keys_path, "r") as k: # More security for the API KEY not becoming public !! 
     keys_api = json.load(k)
-k.close()
 
 key = keys_api['lol_esports_api_key']
 
@@ -132,8 +135,53 @@ def get_lol_schedule(past_or_next) -> dict:
     else:
         print(league_response)
         return {"status": False}
+
+
+def get_lol_roster():
+    # API url to collect teams data
+    url_teams = "https://esports-api.lolesports.com/persisted/gw/getTeams"
+    league_response = requests.get(url_teams, headers=header, params=query_params)
+
+    # Check if request was successful
+    if not league_response.ok:
+        return {"status":False}
     
+    else:
+        # Create DF to treat data
+        all_teams_df = pd.DataFrame(league_response.json()["data"]["teams"])
+
+        # Filter only FURIA data
+        filtered_df = all_teams_df[all_teams_df["name"] == "FURIA"]
+        for i, row in filtered_df.iterrows():
+            # Convert the players json into a df
+            furia_df = pd.DataFrame(row["players"])
+            break
+        
+        # Create column to correctly display player name
+        furia_df["player_name"] = furia_df.apply(lambda x: f'{x["firstName"]} "{x["summonerName"]}" {x["lastName"]}', axis=1)
+        furia_df["role"] = furia_df.apply(lambda x: "adc" if x["role"] == "bottom" else x["role"], axis=1)
+        roles_index = {
+            "top": 1,
+            "jungle": 2,
+            "mid": 3,
+            "adc": 4,
+            "support": 5
+        }
+        furia_df["role_idx"] = furia_df.apply(lambda x: roles_index[x["role"]], axis=1)
+
+        furia_df = furia_df.sort_values(by="role_idx", ascending=True)
+
+        # Prepare the string to be send to the final user
+        roster = "\n".join(
+            f'{x["role"]} - {x["player_name"]}' for i, x in furia_df.iterrows()
+        )
+
+        return {"status": True,
+                "roster": roster}
+
+
+
+
 # Test purpose only
 if __name__ == "__main__":
-    a = get_lol_schedule()
-    print(a)
+    a = get_lol_roster()

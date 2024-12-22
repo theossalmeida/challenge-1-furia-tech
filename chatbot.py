@@ -1,8 +1,7 @@
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
 import json
-from backend_chatbot.LoL_Esports_API_Furia import get_lol_schedule
-from urllib.parse import quote
+from backend_chatbot.get_lol_info import get_lol_schedule, get_lol_roster
 
 
 BOT_USERNAME = "challenge_01_bot" # Replace with your bot's username
@@ -19,6 +18,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         f"/cs2\n"
         f"/r6\n"
         f"/rocket_league\n"
+        f"/noticias\n"
         f"/help\n"
     )
 
@@ -38,7 +38,7 @@ async def show_options(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         f"O que voce deseja saber sobre o nosso time de {game_}:\n\n"
         f"/proximos_jogos_{game_}\n"
         f"/ultimos_resultados_{game_}\n"
-        f"/noticias_{game_}\n"
+        f"/jogadores_{game_}\n"
         f"/help\n"
         f"/menu\n"
     )
@@ -71,6 +71,32 @@ async def show_next_games(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     else:
         await update.message.reply_text("Ainda nao tenho informacoes sobre essa modalidade, em breve poderei te ajudar!\n\n/menu")
 
+
+# Next 5 games
+async def show_roster(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+
+    # Collect what game the user chose to receive information
+    game = update.message.text.split("_")[1]
+
+    # Message to let user know we are running the function
+    await update.message.reply_text("Buscando nossa seleçåo...")
+    
+    if game == "league":
+
+        roster = get_lol_roster()
+
+        # Condition for cases where there are no next games on the function response
+        if not roster["status"]:
+            await update.message.reply_text("Ocorreu um erro ao tentar nossa seleçao, tente novamente mais tarde.\n\n/menu")
+
+        else:
+            team = roster["roster"]
+            await update.message.reply_text("Esses sao nossos jogadores: \n" + team + "\n\n/menu")
+
+    else:
+        await update.message.reply_text("Ainda nao tenho informacoes sobre essa modalidade, em breve poderei te ajudar!\n\n/menu")
+
+
 # Last 5 results
 async def show_past_results(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
@@ -94,6 +120,7 @@ async def show_past_results(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     else:
         await update.message.reply_text("Ainda nao tenho informacoes sobre essa modalidade, em breve poderei te ajudar!\n\n/menu")
 
+
 # Help
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = (
@@ -103,6 +130,7 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         f"/menu"
     )
     await update.message.reply_text(message)
+
 
 # Main function
 def main():
@@ -131,9 +159,12 @@ def main():
     commands_last_results = ["ultimos_resultados_league", "ultimos_resultados_valorant", "ultimos_resultados_cs2", "ultimos_resultados_r6", "ultimos_resultados_rocket_league"]
     application.add_handler(CommandHandler(commands_last_results, show_past_results))
 
+    # Register handlers for each game roster
+    command_roster = ["jogadores_league", "jogadores_valorant", "jogadores_cs2", "jogadores_r6", "jogadores_rocket_league"]
+    application.add_handler(CommandHandler(command_roster, show_roster))
+
     # Register handlers for each game news
-    commands_noticias = ["noticias_league", "noticias_valorant", "noticias_cs2", "noticias_r6", "noticias_rocket_league"]
-    application.add_handler(CommandHandler(commands_noticias, start))
+    application.add_handler(CommandHandler("noticias", start))
 
     # Run the bot
     application.run_polling()
