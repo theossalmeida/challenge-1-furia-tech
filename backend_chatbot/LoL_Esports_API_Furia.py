@@ -124,7 +124,7 @@ def get_lol_schedule(past_or_next) -> dict:
             # JSON to be returned with the information about next games (if it has)
             furia_next = {
                 "status": True,
-                "games": games
+                "games": f"Últimos resultados:\n{games}"
             }
 
         return furia_next

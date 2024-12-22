@@ -2,106 +2,107 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 import json
 from backend_chatbot.LoL_Esports_API_Furia import get_lol_schedule
+from urllib.parse import quote
 
-BOT_USERNAME = "challenge_01_bot"  # Replace with your bot's username
+
+BOT_USERNAME = "challenge_01_bot" # Replace with your bot's username
+
 
 # Command to send the list of clickable commands
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    keyboard = [
-        [InlineKeyboardButton("League of Legends", callback_data="league_of_legends")],
-        [InlineKeyboardButton("Valorant", callback_data="valorant")],
-        [InlineKeyboardButton("CS2", callback_data="cs2")],
-        [InlineKeyboardButton("Help", callback_data="help")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Escolha um dos comandos abaixo:", reply_markup=reply_markup)
 
-# Callback handler for all buttons
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    await query.answer()
+    # Update here for the initial options the user should have
+    message = (
+        "Choose one of the commands below:\n\n"
+        f"/league_of_legends\n"
+        f"/valorant\n"
+        f"/cs2\n"
+        f"/r6\n"
+        f"/rocket_league\n"
+        f"/help\n"
+    )
 
-    if query.data == "league_of_legends":
-        await query.message.reply_text("Você escolheu League of Legends!")
-        await show_lol_options(update, context)
-    elif query.data == "valorant":
-        await query.message.reply_text("Você escolheu Valorant!")
-        await show_valorant_options(update, context)
-    elif query.data == "cs2":
-        await query.message.reply_text("Você escolheu CS2!")
-        await show_cs2_options(update, context)
-    elif query.data == "help":
-        await query.message.reply_text("Menu de ajuda solicitado!")
-        await help(update, context)
-    elif query.data == "proximos_jogos_lol":
-        await query.message.reply_text("Buscando os próximos jogos...")
-        await show_next_games_lol(update, context)
-    elif query.data == "ultimos_resultados_lol":
-        await query.message.reply_text("Buscando os últimos resultados...")
-        await show_past_results_lol(update, context)
-    elif query.data == "voltar":
-        await start(update.callback_query, context)
+    # Send the message
+    await update.message.reply_text(message)
+    return
 
-# League of Legends options
-async def show_lol_options(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    keyboard = [
-        [InlineKeyboardButton("Próximos Jogos", callback_data="proximos_jogos_lol")],
-        [InlineKeyboardButton("Últimos Resultados", callback_data="ultimos_resultados_lol")],
-        [InlineKeyboardButton("Voltar", callback_data="voltar")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.callback_query.message.reply_text("Escolha uma das opções abaixo:", reply_markup=reply_markup)
+# Show information options for the user
+async def show_options(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
-# Valorant options
-async def show_valorant_options(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    keyboard = [
-        [InlineKeyboardButton("Próximos Jogos", callback_data="proximos_jogos_val")],
-        [InlineKeyboardButton("Últimos Resultados", callback_data="ultimos_resultados_val")],
-        [InlineKeyboardButton("Voltar", callback_data="voltar")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.callback_query.message.reply_text("Escolha uma das opções abaixo:", reply_markup=reply_markup)
+    # Include the game on the command so our code knows what to look for
+    game = update.message.text[1:]
+    game_ = 'league' if game == 'league_of_legends' else game
 
-# CS2 options
-async def show_cs2_options(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    keyboard = [
-        [InlineKeyboardButton("Próximos Jogos", callback_data="proximos_jogos_cs2")],
-        [InlineKeyboardButton("Últimos Resultados", callback_data="ultimos_resultados_cs2")],
-        [InlineKeyboardButton("Voltar", callback_data="voltar")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.callback_query.message.reply_text("Escolha uma das opções abaixo:", reply_markup=reply_markup)
+    # Include here the options the user should have for each game
+    message = (
+        f"O que voce deseja saber sobre o nosso time de {game_}:\n\n"
+        f"/proximos_jogos_{game_}\n"
+        f"/ultimos_resultados_{game_}\n"
+        f"/noticias_{game_}\n"
+        f"/help\n"
+        f"/menu\n"
+    )
 
-# Próximos jogos para LoL
-async def show_next_games_lol(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # Send the message
+    await update.message.reply_text(message)
+    return
 
-    schedule = get_lol_schedule("next_games")
+# Next 5 games
+async def show_next_games(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
-    # Condition for cases where there are no next games on the function response
-    if not schedule["status"]:
-        await update.callback_query.message.reply_text("Ocorreu um erro ao tentar buscar os próximos jogos, tente novamente mais tarde")
+    # Collect what game the user chose to receive information
+    game = update.message.text.split("_")[2]
+
+    # Message to let user know we are running the function
+    await update.message.reply_text("Buscando próximos jogos...")
+    
+    if game == "league":
+
+        schedule = get_lol_schedule("next_games")
+
+        # Condition for cases where there are no next games on the function response
+        if not schedule["status"]:
+            await update.message.reply_text("Ocorreu um erro ao tentar buscar os próximos jogos, tente novamente mais tarde.\n\n/menu")
+
+        else:
+            games = schedule["games"]
+            await update.message.reply_text(games + "\n\n/menu")
 
     else:
-        games = schedule["games"]
-        await update.callback_query.message.reply_text(f"Próximos jogos:\n{games}")
+        await update.message.reply_text("Ainda nao tenho informacoes sobre essa modalidade, em breve poderei te ajudar!\n\n/menu")
 
-# Últimos resultados para LoL
-async def show_past_results_lol(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    schedule = get_lol_schedule("past_games")
-    if not schedule["status"]:
-        await update.callback_query.message.reply_text("Ocorreu um erro ao tentar buscar os próximos jogos, tente novamente mais tarde")
+# Last 5 results
+async def show_past_results(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+
+    # Collect what game the user chose to receive information
+    game = update.message.text.split("_")[2]
+    
+    # Message to let user know we are running the function
+    await update.message.reply_text("Buscando últimos resultados...")
+
+    if game == "league":
+    
+        schedule = get_lol_schedule("past_games")
+    
+        if not schedule["status"]:
+            await update.message.reply_text("Ocorreu um erro ao tentar buscar os próximos jogos, tente novamente mais tarde.\n\n/menu")
+    
+        else:
+            games = schedule["games"]
+            await update.message.reply_text(f"Últimos resultados:\n{games}\n\n/menu")
+    
     else:
-        games = schedule["games"]
-        await update.callback_query.message.reply_text(f"Últimos resultados:\n{games}")
+        await update.message.reply_text("Ainda nao tenho informacoes sobre essa modalidade, em breve poderei te ajudar!\n\n/menu")
 
 # Help
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = (
         "Eu só consigo te ajudar com as informações sobre os nossos times e as notícias.\n"
         "Caso precise de ajuda sobre algum de nossos serviços ou produtos, entre em contato pelos nossos canais de atendimento:\n"
-        "--link1--\n--link2--"
+        "--link1--\n--link2--\n\n"
+        f"/menu"
     )
-    await update.callback_query.message.reply_text(message)
+    await update.message.reply_text(message)
 
 # Main function
 def main():
@@ -113,9 +114,26 @@ def main():
     # Create the Application
     application = Application.builder().token(bot_token).build()
 
-    # Register handlers
+    # Register basic handlers
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(button_handler))
+    application.add_handler(CommandHandler("menu", start))
+    application.add_handler(CommandHandler("help", help))
+
+    # Register handlers for each game options
+    show_options_games = ['league_of_legends', 'valorant', 'cs2', 'r6', 'rocket_league']
+    application.add_handler(CommandHandler(show_options_games, show_options))
+
+    # Register handlers for each game next games
+    commands_next_games = ["proximos_jogos_league", "proximos_jogos_valorant", "proximos_jogos_cs2", "proximos_jogos_r6", "proximos_jogos_rocket_league"]
+    application.add_handler(CommandHandler(commands_next_games, show_next_games))
+
+    # Register handlers for each game past results
+    commands_last_results = ["ultimos_resultados_league", "ultimos_resultados_valorant", "ultimos_resultados_cs2", "ultimos_resultados_r6", "ultimos_resultados_rocket_league"]
+    application.add_handler(CommandHandler(commands_last_results, show_past_results))
+
+    # Register handlers for each game news
+    commands_noticias = ["noticias_league", "noticias_valorant", "noticias_cs2", "noticias_r6", "noticias_rocket_league"]
+    application.add_handler(CommandHandler(commands_noticias, start))
 
     # Run the bot
     application.run_polling()
