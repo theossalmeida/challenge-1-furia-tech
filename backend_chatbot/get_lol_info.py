@@ -72,7 +72,7 @@ def get_lol_schedule(past_or_next) -> dict:
                     # If failed, return false
                     {
                         "status": False,
-                        "next_games": "failed to get next games"
+                        "next_games": ""
                     }
 
                 else:

@@ -1,0 +1,8 @@
+# Ignore the json containing confidential information
+keys_api.json
+
+# Ignore every log file
+*.log
+
+# Ignore everything on __pycache__ folder
+*cpython-311.pyc

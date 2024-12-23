@@ -31,15 +31,20 @@ hltv_url = "https://www.hltv.org"
 
 def get_cs2_roster() -> dict:
 
+    # url to collect roster information 
     roster_url = hltv_url + "/team/8297/furia#tab-rosterBox"
 
+    # Scrap to avoid cloudfare block
     scrapper = cloudscraper.create_scraper()
     response = scrapper.get(roster_url)
+
+    # Check if response was successful 
     if not response.ok:
         schedule = {
             "status": False,
-            "games": f"Nao foi possivel obter os jogadores no momento, tente novamente mais tarde!" 
+            "games": "" 
         }
+        return schedule
     else:
         try:
             # Collecting roster info
@@ -65,6 +70,7 @@ def get_cs2_roster() -> dict:
                 ('[COACH] ' if i == 0 else '[PLAYER] ') + p for i, p in enumerate(players_real_name)
             ])
 
+            # Return the json containing status and the roster ready to be send for user
             return {
                 "status": True,
                 "roster": roster 
@@ -78,10 +84,116 @@ def get_cs2_roster() -> dict:
             
 
 def get_cs2_schedule(past_or_next) -> dict:
-    pass
+
+    try:
+
+        # url to collect matches information
+        roster_url = hltv_url + "/team/8297/furia#tab-matchesBox"
+
+        # Test purpose only, change here if uria doesnt have any future games and you need to test
+        # roster_url = hltv_url + "/team/12374/verdant#tab-matchesBox"
+
+        # Scrap to avoid cloudfire block
+        scrapper = cloudscraper.create_scraper()
+        response = scrapper.get(roster_url)
+
+        # Check if response was successful
+        if not response.ok:
+            schedule = {
+                "status": False,
+                "games": "" 
+            }
+        
+        else:
+
+            soup = BeautifulSoup(response.text, 'html.parser')
+            matches_div = soup.find('div', id='matchesBox')
+            has_matches = matches_div.find('div', class_='empty-state')
+
+            # Check if user want next games or previous results
+            if past_or_next == "next":
+                if has_matches:
+                    
+                    # collect first table with upcoming matches
+                    next_matches_table = matches_div.find_all('table', class_='table-container match-table')[0]
+                    next_matches_event = next_matches_table.find_all('tr', class_='event-header-cell')[0].find('a').text.strip().split(' -')[0]
+                    next_dates, next_matches = [], [] 
+                    for i, row in enumerate(next_matches_table.find_all('tr', class_='team-row')):
+                        
+                        # only collect max 5 next matches
+                        if i >= 5:
+                            break
+
+                        date_match = row.find('td', class_='date-cell').find('span').text.strip()
+                        date_fix = datetime.now().strftime("%d/%m/%Y") if ":" in date_match else date_match
+                        next_dates.append(date_fix)
+
+                        has_oponent = row.find_all('div')[2].find('a', class_='team-name team-2')
+                        oponent = has_oponent.text.strip() if has_oponent else "TBD"
+                        game_ = f"FURIA x {oponent}"
+                        next_matches.append(game_)
+                    
+                        games = "\n".join(
+                            [f"{next_matches_event} - {date} - {game}" for date, game in zip(next_dates, next_matches)]
+                        )
+
+                        furia_next = {
+                            "status": True,
+                            "games": f"Próximos jogos: \n{games}\n\n/menu"
+                        }
+
+                        return furia_next
+
+
+                else:
+                    games = "Ainda nao temos a data dos proximos jogos da Furia, mas fique ligado, assim que tivermos vamos te informar!\n\n/menu"
+                    
+                # JSON to be returned with the information about next games (if it has)
+                furia_next = {
+                    "status": True,
+                    "games": games
+                }
+
+                return furia_next
+
+            else:
+
+                past_dates, past_matches = [], []
+                last_matches_table = matches_div.find_all('table', class_='table-container match-table')[0 if has_matches else 1]
+                last_matches_event = last_matches_table.find_all('tr', class_='event-header-cell')[0].find('a').text.strip().split(' -')[0]
+
+                for i, row in enumerate(last_matches_table.find_all('tr', class_='team-row')):
+                    
+                    # only collect max 5 matches results
+                    if i >= 5:
+                        break
+
+                    date_match = row.find('td', class_='date-cell').find('span').text.strip()
+                    past_dates.append(date_match)
+
+                    results_cells = row.find('td', class_='team-center-cell').find('div', class_='score-cell').find_all('span')
+                    furia_score = results_cells[0].text.strip()
+                    oponent_score = results_cells[2].text.strip()
+                    oponent = row.find_all('div')[2].find('a', class_='team-name team-2').text.strip()
+                    result_match = f"FURIA {furia_score} x {oponent_score} {oponent}"
+                    past_matches.append(result_match)
+                
+                games = "\n".join(
+                    [f"{last_matches_event} - {date} - {result}" for date, result in zip(past_dates, past_matches)]
+                )
+
+                furia_past = {
+                    "status": True,
+                    "games": f"Últimos resultados: \n{games}\n\n/menu"
+                }
+
+                return furia_past
+
+    except Exception as e:
+        logging.error(f"Error ocurred while fetching data for cs2 schedule {past_or_next} games: {e}")                  
 
 
 # Test purpose only
 if __name__ == '__main__':
-    a = get_cs2_roster()
+    a = get_cs2_schedule("past")
     print(a)

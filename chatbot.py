@@ -31,6 +31,12 @@ games_functions = {
             "jogadores_league": get_lol_roster,
             "jogos_cs2": get_cs2_schedule,
             "jogadores_cs2": get_cs2_roster,
+            "jogos_valorant": "",
+            "jogadores_valorant": "",
+            "jogos_r6": "",
+            "jogadores_r6": "",
+            "jogos_rocketleague": "",
+            "jogadores_rocketleague": "",
         }
 
 # Command to send the list of clickable commands
@@ -43,7 +49,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             f"/valorant\n"
             f"/cs2\n"
             f"/r6\n"
-            f"/rocket_league\n"
+            f"/rocketleague\n"
             f"/noticias\n"
             f"/help\n"
         )
@@ -110,6 +116,7 @@ async def show_next_games(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     
     except Exception as e:
         logging.error(f"Error has occured while fetching next games for user: {e}")
+
 
 # Next 5 games
 async def show_roster(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -191,24 +198,25 @@ def main():
     application.add_handler(CommandHandler("noticias", start))
     
     # Register handlers for each game options
-    show_options_games = ['league_of_legends', 'valorant', 'cs2', 'r6', 'rocket_league']
+    show_options_games = ['league_of_legends', 'valorant', 'cs2', 'r6', 'rocketleague']
     application.add_handler(CommandHandler(show_options_games, show_options))
 
     # Register handlers for each game next games
-    commands_next_games = ["proximos_jogos_league", "proximos_jogos_valorant", "proximos_jogos_cs2", "proximos_jogos_r6", "proximos_jogos_rocket_league"]
+    commands_next_games = ["proximos_jogos_league", "proximos_jogos_valorant", "proximos_jogos_cs2", "proximos_jogos_r6", "proximos_jogos_rocketleague"]
     application.add_handler(CommandHandler(commands_next_games, show_next_games))
 
     # Register handlers for each game past results
-    commands_last_results = ["ultimos_jogos_league", "ultimos_jogos_valorant", "ultimos_jogos_cs2", "ultimos_jogos_r6", "ultimos_jogos_rocket_league"]
+    commands_last_results = ["ultimos_jogos_league", "ultimos_jogos_valorant", "ultimos_jogos_cs2", "ultimos_jogos_r6", "ultimos_jogos_rocketleague"]
     application.add_handler(CommandHandler(commands_last_results, show_past_results))
 
     # Register handlers for each game roster
-    command_roster = ["jogadores_league", "jogadores_valorant", "jogadores_cs2", "jogadores_r6", "jogadores_rocket_league"]
+    command_roster = ["jogadores_league", "jogadores_valorant", "jogadores_cs2", "jogadores_r6", "jogadores_rocketleague"]
     application.add_handler(CommandHandler(command_roster, show_roster))
 
 
     # Run the bot
     application.run_polling()
+
 
 if __name__ == '__main__':
     main()
