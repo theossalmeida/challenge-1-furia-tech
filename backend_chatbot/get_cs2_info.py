@@ -1,6 +1,4 @@
 from bs4 import BeautifulSoup
-import json
-import pandas as pd
 from datetime import datetime
 import cloudscraper
 import logging

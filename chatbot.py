@@ -1,9 +1,14 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 import json
-from backend_chatbot.get_lol_info import get_lol_schedule, get_lol_roster
-from backend_chatbot.get_cs2_info import get_cs2_schedule, get_cs2_roster
 import logging
+from backend_chatbot import (
+    get_cs2_info as cs2,
+    get_lol_info as lol,
+    get_valorant_info as val,
+    get_r6_info as r6,
+    get_rl_info as rl
+    )
 
 
 """
@@ -27,16 +32,16 @@ BOT_USERNAME = "challenge_01_bot" # Replace with your bot's username
 # Dict with all the functions used in the async functions 
 # (this avoid a lot of if-else statements and make the code more clean)
 games_functions = {
-            "jogos_league": get_lol_schedule,
-            "jogadores_league": get_lol_roster,
-            "jogos_cs2": get_cs2_schedule,
-            "jogadores_cs2": get_cs2_roster,
-            "jogos_valorant": "",
-            "jogadores_valorant": "",
-            "jogos_r6": "",
-            "jogadores_r6": "",
-            "jogos_rocketleague": "",
-            "jogadores_rocketleague": "",
+            "jogos_league": lol.get_lol_schedule,
+            "jogadores_league": lol.get_lol_roster,
+            "jogos_cs2": cs2.get_cs2_schedule,
+            "jogadores_cs2": cs2.get_cs2_roster,
+            "jogos_valorant": val.get_val_schedule,
+            "jogadores_valorant": val.get_val_roster,
+            "jogos_r6": r6.get_r6_schedule,
+            "jogadores_r6": r6.get_r6_roster,
+            "jogos_rocketleague": rl.get_rl_schedule,
+            "jogadores_rocketleague": rl.get_rl_roster,
         }
 
 # Command to send the list of clickable commands

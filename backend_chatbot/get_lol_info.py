@@ -1,8 +1,7 @@
 import requests
 import pandas as pd
-from datetime import datetime, date
+from datetime import datetime
 import json
-from bs4 import BeautifulSoup
 import os
 import logging
 from pathlib import Path
