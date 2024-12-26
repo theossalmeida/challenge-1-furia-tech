@@ -110,7 +110,7 @@ def get_cs2_schedule(past_or_next) -> dict:
 
             # Check if user want next games or previous results
             if past_or_next == "next":
-                if has_matches:
+                if not has_matches:
                     
                     # collect first table with upcoming matches
                     next_matches_table = matches_div.find_all('table', class_='table-container match-table')[0]
@@ -141,7 +141,6 @@ def get_cs2_schedule(past_or_next) -> dict:
                         }
 
                         return furia_next
-
 
                 else:
                     games = "Ainda nao temos a data dos proximos jogos da Furia, mas fique ligado, assim que tivermos vamos te informar!\n\n/menu"

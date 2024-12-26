@@ -23,13 +23,13 @@ logging.basicConfig(
     level=logging.DEBUG,  
     format="%(asctime)s - %(levelname)s - %(message)s",  # Log message format
     datefmt="%Y-%m-%d %H:%M:%S",
-    filename= log_dir / "app_cs2.log",  # Files where log will be saved - remember to transfer the file to a database or log direct in it
+    filename= log_dir / "app_lol.log",  # Files where log will be saved - remember to transfer the file to a database or log direct in it
     filemode="a" 
 )
 
 # Parameters and variables for the API requisition https://esports-api.lolesports.com/
 keys_path = os.path.join("../..", "keys_api.json")
-keys_path = "/Users/theo/chall-01-furia/challenge-1-furia-tech/keys_api.json"
+keys_path = "keys_api.json"
 with open(keys_path, "r") as k: # More security for the API KEY not becoming public !! 
     keys_api = json.load(k)
 
@@ -119,7 +119,7 @@ def get_lol_schedule(past_or_next) -> dict:
                         f"{game['league']} - {game['date']} - {game['furia']} x {game['oponente']}" for i, game in furia_schedule.iterrows()
                         )
                     
-                    f"Prximos jogos:\n{schedule_formatted}\n\n/menu"
+                    f"Próximos jogos:\n{schedule_formatted}\n\n/menu"
 
                 else:
                     games = "Ainda nao temos a data dos proximos jogos da Furia, mas fique ligado, assim que tivermos vamos te informar!\n\n/menu"
@@ -129,6 +129,8 @@ def get_lol_schedule(past_or_next) -> dict:
                     "status": True,
                     "games": games
                 }
+
+                return furia_next
 
             else:
                 # Filter to obtain the last 5 games (considering the date of the call)
@@ -156,7 +158,7 @@ def get_lol_schedule(past_or_next) -> dict:
                     "games": f"Últimos resultados:\n{games}\n\n/menu"
                 }
 
-            return furia_next
+                return furia_next
         
         except Exception as e:
             # Here you should threat  every exception case to be more specific on the logging, and also treat the error correctly
@@ -166,7 +168,6 @@ def get_lol_schedule(past_or_next) -> dict:
                 "games": "Error occured while getting games."
             }
     else:
-        print(league_response)
         return {"status": False}
 
 

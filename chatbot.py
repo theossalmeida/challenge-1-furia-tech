@@ -96,12 +96,11 @@ async def show_next_games(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     try:
         # Collect what game the user chose to receive information
-        game = update.message.text.split("_")[2]
+        next_function = update.message.text.split("_")[1] + "_" + update.message.text.split("_")[2]
 
         # Check if the game selected already has the correct function to collect data
-        if game in ["league", "cs2"]:
-
-            next_function = update.message.text.split("_")[1] + "_" + update.message.text.split("_")[2]   
+        if next_function in games_functions.keys():
+   
             # Message to let user know we are running the function
             await update.message.reply_text("Buscando próximos jogos...")
 
@@ -127,14 +126,14 @@ async def show_next_games(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 async def show_roster(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     # Collect what game the user chose to receive information
-    game = update.message.text.split("_")[1]
+    command = update.message.text[1:]
 
-    if game in ["league", "cs2"]:
+    if command in games_functions.keys():
+
+        roster = games_functions[update.message.text[1:]]()
 
         # Message to let user know we are running the function
         await update.message.reply_text("Buscando nossa seleçåo...")
-        
-        roster = games_functions[update.message.text[1:]]()
 
         # Condition for cases where there are no next games on the function response
         if not roster["status"]:
@@ -143,7 +142,7 @@ async def show_roster(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
         else:
             team = roster["roster"]
-            await update.message.reply_text("Esses sao nossos jogadores: \n" + team + "\n\n/menu")
+            await update.message.reply_text("Esses sao nossos jogadores:\n\n" + team + "\n\n/menu")
             return
 
     await update.message.reply_text("Ainda nao tenho informacoes sobre essa modalidade, em breve poderei te ajudar!\n\n/menu")
@@ -153,11 +152,9 @@ async def show_roster(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 async def show_past_results(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     # Collect what game the user chose to receive information
-    game = update.message.text.split("_")[2]
+    past_function = update.message.text.split("_")[1] + "_" + update.message.text.split("_")[2] 
 
-    if game in ["league", "cs2"]:
-
-        past_function = update.message.text.split("_")[1] + "_" + update.message.text.split("_")[2] 
+    if past_function in games_functions:
 
         # Message to let user know we are running the function
         await update.message.reply_text("Buscando últimos resultados...")
@@ -169,7 +166,7 @@ async def show_past_results(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     
         else:
             games = schedule["games"]
-            await update.message.reply_text(f"Últimos resultados:\n{games}\n\n/menu")
+            await update.message.reply_text(games)
         
     else:
         await update.message.reply_text("Ainda nao tenho informacoes sobre essa modalidade, em breve poderei te ajudar!\n\n/menu")
