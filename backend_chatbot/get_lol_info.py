@@ -47,10 +47,9 @@ def get_lol_schedule(past_or_next) -> dict:
     if league_response.ok:
         try:
             leagues = league_response.json()['data']['leagues']
-
             # Collecting all IDs leagues Furia is participating
             leagues_df = pd.DataFrame(leagues)
-            furia_participating_leagues = ["CBLOL", "LTA"] # Remember to include all leagues Furia is participating (may connect to database of competitions to make it automatic)
+            furia_participating_leagues = ["CBLOL", "LTA South"] # Remember to include all leagues Furia is participating (may connect to database of competitions to make it automatic)
 
             # Collecting the IDs of the leagues
             furia_leagues = leagues_df[leagues_df["name"].isin(furia_participating_leagues)]
@@ -108,18 +107,18 @@ def get_lol_schedule(past_or_next) -> dict:
             if past_or_next == "next":
 
                 # Filter to obtain the next 5 games (considering the date of the call)
-                furia_schedule = full_schedule_df[full_schedule_df['date'] > current_date].sort_values(by='date').head(5)
+                furia_schedule = full_schedule_df[full_schedule_df['date'] >= current_date].sort_values(by='date').head(5)
 
                 if not furia_schedule.empty:
                     schedule_formatted = "\n".join(
-                        f"{game['league']} - {game['date']} - {game['furia']} x {game['oponente']}" for i, game in furia_schedule.iterrows()
+                        f"{game['league']} - {game['date']} - {game['furia']} x {game['oponente']}" for _, game in furia_schedule.iterrows()
                         )
-                    
-                    f"Próximos jogos:\n{schedule_formatted}\n\n/menu"
+
+                    games = f"Próximos jogos:\n{schedule_formatted}\n\n/menu"
 
                 else:
                     games = "Ainda nao temos a data dos proximos jogos da Furia, mas fique ligado, assim que tivermos vamos te informar!\n\n/menu"
-                
+
                 # JSON to be returned with the information about next games (if it has)
                 furia_next = {
                     "status": True,

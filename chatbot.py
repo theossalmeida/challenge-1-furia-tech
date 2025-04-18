@@ -170,7 +170,7 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = (
         "Eu só consigo te ajudar com as informações sobre os nossos times e as notícias.\n"
         "Caso precise de ajuda sobre algum de nossos serviços ou produtos, entre em contato pelos nossos canais de atendimento:\n"
-        "--link1--\n--link2--\n\n"
+        "https://www.furia.gg/faq\n\n"
         f"/menu"
     )
     await update.message.reply_text(message)
