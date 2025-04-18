@@ -5,6 +5,7 @@ import json
 import os
 import logging
 from pathlib import Path
+from load_dotenv import load_dotenv
 
 
 """
@@ -13,6 +14,9 @@ the logging cofinguration will be just for the errors inside the functions, ther
 but for a production environment is really important to have it all logged and stored in a database, this will make it much easier
 to fix errors and find bugs.
 """
+load_dotenv()
+
+API_KEY = os.getenv('API_KEY') # More security for the API KEY not becoming public !! 
 
 # Write here the path where the logs will be saved
 log_dir = Path("logs")
@@ -27,15 +31,7 @@ logging.basicConfig(
     filemode="a" 
 )
 
-# Parameters and variables for the API requisition https://esports-api.lolesports.com/
-keys_path = os.path.join("../..", "keys_api.json")
-keys_path = "keys_api.json"
-with open(keys_path, "r") as k: # More security for the API KEY not becoming public !! 
-    keys_api = json.load(k)
-
-key = keys_api['lol_esports_api_key']
-
-header = {"x-api-key": key, "Content-Type": "application/json"}
+header = {"x-api-key": API_KEY, "Content-Type": "application/json"}
 query_params = {
     "hl": "en-US",  # Change here for the preferred language
 }

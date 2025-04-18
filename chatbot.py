@@ -1,13 +1,12 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
-import json
+from load_dotenv import load_dotenv
+import os
 import logging
 from backend_chatbot import (
     get_cs2_info as cs2,
     get_lol_info as lol,
     get_valorant_info as val,
-    get_r6_info as r6,
-    get_rl_info as rl
     )
 
 
@@ -38,10 +37,6 @@ games_functions = {
             "jogadores_cs2": cs2.get_cs2_roster,
             "jogos_valorant": val.get_val_schedule,
             "jogadores_valorant": val.get_val_roster,
-            "jogos_r6": r6.get_r6_schedule,
-            "jogadores_r6": r6.get_r6_roster,
-            "jogos_rocketleague": rl.get_rl_schedule,
-            "jogadores_rocketleague": rl.get_rl_roster,
         }
 
 # Command to send the list of clickable commands
@@ -53,8 +48,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             f"/league_of_legends\n"
             f"/valorant\n"
             f"/cs2\n"
-            f"/r6\n"
-            f"/rocketleague\n"
             f"/noticias\n"
             f"/help\n"
         )
@@ -185,10 +178,9 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 # Main function
 def main():
-    # Load the bot token securely
-    with open("keys_api.json") as k:
-        keys = json.load(k)
-    bot_token = keys["telegram_token"]  # Ensure your JSON file contains your bot token
+    load_dotenv()
+
+    bot_token = os.getenv('BOT_TOKEN') # Load the bot token securely
 
     # Create the Application
     application = Application.builder().token(bot_token).build()

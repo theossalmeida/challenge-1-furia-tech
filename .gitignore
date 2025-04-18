@@ -6,3 +6,6 @@ keys_api.json
 
 # Ignore everything on __pycache__ folder
 *cpython-311.pyc
+
+# Ignore .env
+.env
